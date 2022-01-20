@@ -4,7 +4,8 @@ import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
     GetIdPrefsRequest,
-    GetIdPrefsResponse, GetNewIdResponse,
+    GetIdPrefsResponse,
+    GetNewIdResponse,
     Id,
     IdAndOptionalPrefs,
     PostIdPrefsRequest,
@@ -14,13 +15,14 @@ import {
 import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "../paf-mvp-core-js/src/model/model";
 import {
     GetIdPrefsRequestSigner,
-    GetIdPrefsResponseSigner, GetNewIdResponseSigner,
+    GetIdPrefsResponseSigner,
+    GetNewIdResponseSigner,
     PostIdPrefsRequestSigner,
     PostIdPrefsResponseSigner
 } from "../paf-mvp-core-js/src/crypto/message-signature";
 import {Cookies} from "../paf-mvp-core-js/src/cookies";
 import {IdSigner} from "../paf-mvp-core-js/src/crypto/data-signature";
-import {PrivateKey, PublicKey} from "../paf-mvp-core-js/src/crypto/keys";
+import {PrivateKey, PublicKeys} from "../paf-mvp-core-js/src/crypto/keys";
 import {jsonEndpoints, redirectEndpoints, uriParams} from "../paf-mvp-core-js/src/endpoints";
 
 const domainParser = require('tld-extract');
@@ -43,10 +45,6 @@ const getExistingId = (req: Request): Id | undefined => {
 const getExistingPrefs = (req: Request): Preferences | undefined => {
     const cookies = req.cookies;
     return cookies[Cookies.PREFS] ? JSON.parse(cookies[Cookies.PREFS]) : undefined
-}
-
-export interface PublicKeys {
-    [host: string]: PublicKey
 }
 
 // TODO should be a proper ExpressJS middleware
