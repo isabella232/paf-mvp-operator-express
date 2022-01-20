@@ -22,13 +22,10 @@ import {
 } from "../paf-mvp-core-js/src/crypto/message-signature";
 import {Cookies} from "../paf-mvp-core-js/src/cookies";
 import {IdSigner} from "../paf-mvp-core-js/src/crypto/data-signature";
-import {PrivateKey, PublicKeys} from "../paf-mvp-core-js/src/crypto/keys";
+import {PrivateKey, privateKeyFromString, PublicKeys} from "../paf-mvp-core-js/src/crypto/keys";
 import {jsonEndpoints, redirectEndpoints, uriParams} from "../paf-mvp-core-js/src/endpoints";
 
 const domainParser = require('tld-extract');
-
-const ECDSA = require('ecdsa-secp256r1');
-const ECKey = require('ec-key');
 
 // Expiration: now + 3 months
 const getOperatorExpiration = (date: Date = new Date()) => {
@@ -228,7 +225,7 @@ export class OperatorApi {
     readonly postIdPrefsRequestVerifier = new PostIdPrefsRequestSigner();
 
     constructor(public host: string, privateKey: string) {
-        this.ecdsaKey = ECDSA.fromJWK(new ECKey(privateKey));
+        this.ecdsaKey = privateKeyFromString(privateKey)
     }
 
     generateNewId(timestamp = new Date().getTime()): Id {
