@@ -48,7 +48,7 @@ const getExistingPrefs = (req: Request): Preferences | undefined => {
 // TODO all received requests should be verified (signature)
 export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, publicKeyStore: PublicKeys) => {
 
-    const tld = domainParser(operatorHost).domain
+    const tld = domainParser(`https://${operatorHost}`).domain
 
     const writeAsCookies = (input: PostIdPrefsRequest, res: Response) => {
         // TODO here we should verify signatures
