@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "install-core": "cd paf-mvp-core-js; npm install",
-    "install": "npm run install-core",
+    "update": "git submodule foreach \"git checkout main; git pull\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,7 +23,8 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "tld-extract": "^2.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "paf-core": "file:./paf-mvp-core-js"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",
