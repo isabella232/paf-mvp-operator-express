@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "install-core": "cd paf-mvp-core-js; npm install",
+    "install": "npm run install-core",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
