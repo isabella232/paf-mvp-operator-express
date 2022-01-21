@@ -1,3 +1,5 @@
 [submodule "paf-mvp-core-js"]
 	path = paf-mvp-core-js
 	url = https://github.com/criteo/paf-mvp-core-js.git
+	branch = main
+	update = merge
