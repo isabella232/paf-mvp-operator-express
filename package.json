@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "update": "git submodule update; git submodule foreach --recursive \"git checkout main; git pull; npm run update\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,9 +21,9 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.0.1",
     "tld-extract": "^2.0.1",
-    "uuid": "^8.3.2",
-    "paf-core": "file:./paf-mvp-core-js"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

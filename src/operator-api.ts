@@ -1,5 +1,5 @@
 import {Express, Request, Response} from "express";
-import {getReturnUrl, httpRedirect, removeCookie, setCookie} from "../paf-mvp-core-js/src/express";
+import {getReturnUrl, httpRedirect, removeCookie, setCookie} from "paf-mvp-core-js/src/express";
 import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
@@ -11,19 +11,19 @@ import {
     PostIdPrefsRequest,
     PostIdPrefsResponse,
     Preferences
-} from "../paf-mvp-core-js/src/model/generated-model";
-import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "../paf-mvp-core-js/src/model/model";
+} from "paf-mvp-core-js/src/model/generated-model";
+import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "paf-mvp-core-js/src/model/model";
 import {
     GetIdPrefsRequestSigner,
     GetIdPrefsResponseSigner,
     GetNewIdResponseSigner,
     PostIdPrefsRequestSigner,
     PostIdPrefsResponseSigner
-} from "../paf-mvp-core-js/src/crypto/message-signature";
-import {Cookies} from "../paf-mvp-core-js/src/cookies";
-import {IdSigner} from "../paf-mvp-core-js/src/crypto/data-signature";
-import {PrivateKey, privateKeyFromString, PublicKeys} from "../paf-mvp-core-js/src/crypto/keys";
-import {jsonEndpoints, redirectEndpoints, uriParams} from "../paf-mvp-core-js/src/endpoints";
+} from "paf-mvp-core-js/src/crypto/message-signature";
+import {Cookies} from "paf-mvp-core-js/src/cookies";
+import {IdSigner} from "paf-mvp-core-js/src/crypto/data-signature";
+import {PrivateKey, privateKeyFromString, PublicKeys} from "paf-mvp-core-js/src/crypto/keys";
+import {jsonEndpoints, redirectEndpoints, uriParams} from "paf-mvp-core-js/src/endpoints";
 
 const domainParser = require('tld-extract');
 
