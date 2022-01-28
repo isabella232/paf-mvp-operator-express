@@ -293,7 +293,7 @@ export class OperatorApi {
         }
     }
 
-    signId(value: string, timestamp = new Date().getTime()) {
+    signId(value: string, timestamp = new Date().getTime()): Identifier {
         const unsignedId: UnsignedData<Identifier> = {
             version: 0,
             type: 'prebid_id',
