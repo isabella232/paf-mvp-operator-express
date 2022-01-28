@@ -6,8 +6,8 @@ import {
     GetIdPrefsRequest,
     GetIdPrefsResponse,
     GetNewIdResponse,
-    Id,
-    IdAndOptionalPrefs,
+    Identifier,
+    IdAndOptionalPreferences,
     PostIdPrefsRequest,
     PostIdPrefsResponse,
     Preferences
@@ -238,7 +238,7 @@ export class OperatorApi {
     buildGetIdPrefsResponse(receiver: string, {
         identifiers,
         preferences
-    }: IdAndOptionalPrefs, timestamp = new Date().getTime()): GetIdPrefsResponse {
+    }: IdAndOptionalPreferences, timestamp = new Date().getTime()): GetIdPrefsResponse {
         const data: UnsignedMessage<GetIdPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
@@ -258,7 +258,7 @@ export class OperatorApi {
     buildPostIdPrefsResponse(receiver: string, {
         identifiers,
         preferences
-    }: IdAndOptionalPrefs, timestamp = new Date().getTime()): PostIdPrefsResponse {
+    }: IdAndOptionalPreferences, timestamp = new Date().getTime()): PostIdPrefsResponse {
         const data: UnsignedMessage<PostIdPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
