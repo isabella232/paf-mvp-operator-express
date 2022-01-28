@@ -34,7 +34,7 @@ const getOperatorExpiration = (date: Date = new Date()) => {
     return expirationDate;
 }
 
-const getExistingId = (req: Request): Id | undefined => {
+const getExistingId = (req: Request): Identifier | undefined => {
     const cookies = req.cookies;
     return cookies[Cookies.ID] ? JSON.parse(cookies[Cookies.ID]) : undefined
 }
@@ -228,17 +228,18 @@ export class OperatorApi {
         this.ecdsaKey = privateKeyFromString(privateKey)
     }
 
-    generateNewId(timestamp = new Date().getTime()): Id {
+    generateNewId(timestamp = new Date().getTime()): Identifier {
         return {
             ...this.signId(uuidv4(), timestamp),
             persisted: false
         };
     }
 
-    buildGetIdPrefsResponse(receiver: string, {
-        identifiers,
-        preferences
-    }: IdAndOptionalPreferences, timestamp = new Date().getTime()): GetIdPrefsResponse {
+    buildGetIdPrefsResponse(
+        receiver: string,
+        {identifiers, preferences}: IdAndOptionalPreferences,
+        timestamp = new Date().getTime()
+    ): GetIdPrefsResponse {
         const data: UnsignedMessage<GetIdPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
@@ -255,10 +256,11 @@ export class OperatorApi {
         }
     }
 
-    buildPostIdPrefsResponse(receiver: string, {
-        identifiers,
-        preferences
-    }: IdAndOptionalPreferences, timestamp = new Date().getTime()): PostIdPrefsResponse {
+    buildPostIdPrefsResponse(
+        receiver: string,
+        {identifiers, preferences}: IdAndOptionalPreferences,
+        timestamp = new Date().getTime()
+    ): PostIdPrefsResponse {
         const data: UnsignedMessage<PostIdPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
@@ -292,7 +294,7 @@ export class OperatorApi {
     }
 
     signId(value: string, timestamp = new Date().getTime()) {
-        const unsignedId: UnsignedData<Id> = {
+        const unsignedId: UnsignedData<Identifier> = {
             version: 0,
             type: 'prebid_id',
             value,
