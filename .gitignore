@@ -30,7 +30,6 @@ testem.log
 Thumbs.db
 
 build
-dist
 node_modules
 
 ## We don't want to commit the client file as it is generated at build time
