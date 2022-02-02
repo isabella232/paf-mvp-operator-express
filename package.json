@@ -1,13 +1,13 @@
 {
   "name": "paf-mvp-operator-express",
-  "version": "0.0.2",
+  "version": "0.1.1",
   "description": "Prebid Addressability Framework (PAF) Operator: ExpressJS implementation",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "paf-mvp-core-js": "criteo/paf-mvp-core-js#32cfcf84a5677a1a50ed034aa4acfc00cbc0841c",
+    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.1",
     "tld-extract": "^2.0.1",
     "uuid": "^8.3.2"
   },
