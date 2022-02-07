@@ -10,7 +10,9 @@ import {
     IdsAndOptionalPreferences,
     PostIdsPrefsRequest,
     PostIdsPrefsResponse,
-    Preferences
+    Preferences,
+    Get3PcResponse,
+    Error as PAFError
 } from "paf-mvp-core-js/dist/model/generated-model";
 import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "paf-mvp-core-js/dist/model/model";
 import {
@@ -189,6 +191,9 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const isOk = testCookieValue?.length > 0;
 
+        // FIXME use operatorAPI.build3PC
+        // FIXME return 404 if not supported
+
         res.send(JSON.stringify(isOk))
     });
 
@@ -310,5 +315,11 @@ export class OperatorApi {
                 signature: this.idSigner.sign(this.ecdsaKey, unsignedId)
             }
         };
+    }
+
+    build3PC(supported: boolean): Get3PcResponse | PAFError {
+        return supported
+            ? {"3pc": true}
+            : {message: "3PC not supported"}
     }
 }
