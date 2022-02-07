@@ -236,7 +236,7 @@ export class OperatorApi {
     buildGetIdsPrefsResponse(
         receiver: string,
         {identifiers, preferences}: IdsAndOptionalPreferences,
-        timestamp = new Date().getTime()
+        timestampInSec = new Date().getTime() / 1000
     ): GetIdsPrefsResponse {
         const data: UnsignedMessage<GetIdsPrefsResponse> = {
             body: {
@@ -245,7 +245,7 @@ export class OperatorApi {
             },
             sender: this.host,
             receiver,
-            timestamp
+            timestamp: timestampInSec
         };
 
         return {
@@ -257,7 +257,7 @@ export class OperatorApi {
     buildPostIdsPrefsResponse(
         receiver: string,
         {identifiers, preferences}: IdsAndOptionalPreferences,
-        timestamp = new Date().getTime()
+        timestampInSec = new Date().getTime() / 1000
     ): PostIdsPrefsResponse {
         const data: UnsignedMessage<PostIdsPrefsResponse> = {
             body: {
@@ -266,7 +266,7 @@ export class OperatorApi {
             },
             sender: this.host,
             receiver,
-            timestamp
+            timestamp: timestampInSec
         };
 
         return {
@@ -275,14 +275,14 @@ export class OperatorApi {
         }
     }
 
-    buildGetNewIdResponse(receiver: string, newId = this.generateNewId(), timestamp = new Date().getTime()): GetNewIdResponse {
+    buildGetNewIdResponse(receiver: string, newId = this.generateNewId(), timestampInSec = new Date().getTime() / 1000): GetNewIdResponse {
         const data: UnsignedMessage<GetNewIdResponse> = {
             body: {
                 identifiers: [newId],
             },
             sender: this.host,
             receiver,
-            timestamp
+            timestamp: timestampInSec
         };
 
         return {
@@ -291,14 +291,14 @@ export class OperatorApi {
         }
     }
 
-    signId(value: string, timestamp = new Date().getTime()): Identifier {
+    signId(value: string, timestampInSec = new Date().getTime() / 1000): Identifier {
         const unsignedId: UnsignedData<Identifier> = {
             version: 0,
             type: 'paf_browser_id',
             value,
             source: {
                 domain: this.host,
-                timestamp
+                timestamp: timestampInSec
             }
         };
         const {source, ...rest} = unsignedId
