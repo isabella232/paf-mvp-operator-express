@@ -3,23 +3,24 @@ import {getReturnUrl, httpRedirect, removeCookie, setCookie} from "paf-mvp-core-
 import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
-    GetIdPrefsRequest,
-    GetIdPrefsResponse,
+    GetIdsPrefsRequest,
+    GetIdsPrefsResponse,
     GetNewIdResponse,
     Identifier,
-    IdAndOptionalPreferences,
-    PostIdPrefsRequest,
-    PostIdPrefsResponse,
+    IdsAndOptionalPreferences,
+    PostIdsPrefsRequest,
+    PostIdsPrefsResponse,
     Preferences
 } from "paf-mvp-core-js/dist/model/generated-model";
 import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "paf-mvp-core-js/dist/model/model";
 import {
-    GetIdPrefsRequestSigner,
-    GetIdPrefsResponseSigner,
+    GetIdsPrefsRequestSigner,
+    GetIdsPrefsResponseSigner,
     GetNewIdResponseSigner,
-    PostIdPrefsRequestSigner,
-    PostIdPrefsResponseSigner
+    PostIdsPrefsRequestSigner,
+    PostIdsPrefsResponseSigner
 } from "paf-mvp-core-js/dist/crypto/message-signature";
+import {getFromQueryString} from "paf-mvp-core-js/dist/express";
 import {Cookies} from "paf-mvp-core-js/dist/cookies";
 import {IdSigner} from "paf-mvp-core-js/dist/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "paf-mvp-core-js/dist/crypto/keys";
@@ -50,7 +51,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
     const tld = domainParser(`https://${operatorHost}`).domain
 
-    const writeAsCookies = (input: PostIdPrefsRequest, res: Response) => {
+    const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
         // TODO here we should verify signatures
         if (input.body.identifiers?.[0] !== undefined) {
             setCookie(res, Cookies.ID, JSON.stringify(input.body.identifiers[0]), getOperatorExpiration(), {domain: tld})
@@ -62,12 +63,9 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
     const operatorApi = new OperatorApi(operatorHost, privateKey)
 
-    const getReadRequest = (req: Request): GetIdPrefsRequest => ({
-        sender: req.query[uriParams.sender] as string,
-        receiver: req.query[uriParams.receiver] as string,
-        timestamp: parseInt(req.query[uriParams.timestamp] as string),
-        signature: req.query[uriParams.signature] as string
-    });
+    const getReadRequest = (req: Request): GetIdsPrefsRequest => {
+        return getFromQueryString(req)
+    };
 
     /* FIXME should be parsed similar to read request. Get read of uriParams.data
     const getWriteRequest = (req: Request): WriteRequest => ({
@@ -80,8 +78,8 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
      */
 
 
-    const processWrite = (input: PostIdPrefsRequest, res: Response) => {
-        if (!operatorApi.postIdPrefsRequestVerifier.verify(publicKeyStore[input.sender], input)) {
+    const processWrite = (input: PostIdsPrefsRequest, res: Response) => {
+        if (!operatorApi.postIdsPrefsRequestVerifier.verify(publicKeyStore[input.sender], input)) {
             throw 'Write request verification failed'
         }
 
@@ -92,7 +90,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const {identifiers, preferences} = input.body
 
-        return operatorApi.buildPostIdPrefsResponse(input.sender, {identifiers, preferences});
+        return operatorApi.buildPostIdsPrefsResponse(input.sender, {identifiers, preferences});
     };
 
     // *****************************************************************************************************************
@@ -102,7 +100,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     app.get(redirectEndpoints.read, (req, res) => {
         const message = getReadRequest(req);
 
-        if (!operatorApi.getIdPrefsRequestVerifier.verify(publicKeyStore[message.sender], message)) {
+        if (!operatorApi.getIdsPrefsRequestVerifier.verify(publicKeyStore[message.sender], message)) {
             throw 'Read request verification failed'
         }
 
@@ -111,7 +109,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const redirectUrl = getReturnUrl(req, res)
         if (redirectUrl) {
-            const response = operatorApi.buildGetIdPrefsResponse(message.sender, {
+            const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {
                 identifiers: [existingId],
                 preferences
             })
@@ -125,7 +123,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     });
 
     app.get(redirectEndpoints.write, (req, res) => {
-        const input = JSON.parse(req.query[uriParams.data] as string) as PostIdPrefsRequest;
+        const input = JSON.parse(req.query[uriParams.data] as string) as PostIdsPrefsRequest;
 
         const redirectUrl = getReturnUrl(req, res)
         if (redirectUrl) {
@@ -168,14 +166,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const message = getReadRequest(req);
 
-        if (!operatorApi.getIdPrefsRequestVerifier.verify(publicKeyStore[message.sender], message)) {
+        if (!operatorApi.getIdsPrefsRequestVerifier.verify(publicKeyStore[message.sender], message)) {
             throw 'Read request verification failed'
         }
 
         const existingId = getExistingId(req)
         const preferences = getExistingPrefs(req)
 
-        const response = operatorApi.buildGetIdPrefsResponse(message.sender, {identifiers: [existingId], preferences})
+        const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {identifiers: [existingId], preferences})
 
         res.send(JSON.stringify(response))
     });
@@ -195,7 +193,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     });
 
     app.post(jsonEndpoints.write, cors(corsOptions), (req, res) => {
-        const input = JSON.parse(req.body as string) as PostIdPrefsRequest;
+        const input = JSON.parse(req.body as string) as PostIdsPrefsRequest;
 
         try {
             const signedData = processWrite(input, res);
@@ -212,17 +210,17 @@ export class OperatorApi {
     private readonly idSigner = new IdSigner()
     private readonly ecdsaKey: PrivateKey
 
-    private getIdPrefsResponseSigner = new GetIdPrefsResponseSigner();
-    signGetIdPrefsResponse = (data: UnsignedMessage<GetIdPrefsResponse>) => this.getIdPrefsResponseSigner.sign(this.ecdsaKey, data)
+    private getIdsPrefsResponseSigner = new GetIdsPrefsResponseSigner();
+    signGetIdsPrefsResponse = (data: UnsignedMessage<GetIdsPrefsResponse>) => this.getIdsPrefsResponseSigner.sign(this.ecdsaKey, data)
 
-    private postIdPrefsResponseSigner = new PostIdPrefsResponseSigner();
-    signPostIdPrefsResponse = (data: UnsignedMessage<PostIdPrefsResponse>) => this.postIdPrefsResponseSigner.sign(this.ecdsaKey, data)
+    private postIdsPrefsResponseSigner = new PostIdsPrefsResponseSigner();
+    signPostIdsPrefsResponse = (data: UnsignedMessage<PostIdsPrefsResponse>) => this.postIdsPrefsResponseSigner.sign(this.ecdsaKey, data)
 
     private getNewIdResponseSigner = new GetNewIdResponseSigner();
     signGetNewIdResponse = (data: UnsignedMessage<GetNewIdResponse>) => this.getNewIdResponseSigner.sign(this.ecdsaKey, data)
 
-    readonly getIdPrefsRequestVerifier = new GetIdPrefsRequestSigner();
-    readonly postIdPrefsRequestVerifier = new PostIdPrefsRequestSigner();
+    readonly getIdsPrefsRequestVerifier = new GetIdsPrefsRequestSigner();
+    readonly postIdsPrefsRequestVerifier = new PostIdsPrefsRequestSigner();
 
     constructor(public host: string, privateKey: string) {
         this.ecdsaKey = privateKeyFromString(privateKey)
@@ -235,12 +233,12 @@ export class OperatorApi {
         };
     }
 
-    buildGetIdPrefsResponse(
+    buildGetIdsPrefsResponse(
         receiver: string,
-        {identifiers, preferences}: IdAndOptionalPreferences,
+        {identifiers, preferences}: IdsAndOptionalPreferences,
         timestamp = new Date().getTime()
-    ): GetIdPrefsResponse {
-        const data: UnsignedMessage<GetIdPrefsResponse> = {
+    ): GetIdsPrefsResponse {
+        const data: UnsignedMessage<GetIdsPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
                 preferences
@@ -252,16 +250,16 @@ export class OperatorApi {
 
         return {
             ...data,
-            signature: this.signGetIdPrefsResponse(data)
+            signature: this.signGetIdsPrefsResponse(data)
         }
     }
 
-    buildPostIdPrefsResponse(
+    buildPostIdsPrefsResponse(
         receiver: string,
-        {identifiers, preferences}: IdAndOptionalPreferences,
+        {identifiers, preferences}: IdsAndOptionalPreferences,
         timestamp = new Date().getTime()
-    ): PostIdPrefsResponse {
-        const data: UnsignedMessage<PostIdPrefsResponse> = {
+    ): PostIdsPrefsResponse {
+        const data: UnsignedMessage<PostIdsPrefsResponse> = {
             body: {
                 identifiers: isEmptyListOfIds(identifiers) ? [this.generateNewId()] : identifiers,
                 preferences
@@ -273,7 +271,7 @@ export class OperatorApi {
 
         return {
             ...data,
-            signature: this.signPostIdPrefsResponse(data)
+            signature: this.signPostIdsPrefsResponse(data)
         }
     }
 
@@ -296,7 +294,7 @@ export class OperatorApi {
     signId(value: string, timestamp = new Date().getTime()): Identifier {
         const unsignedId: UnsignedData<Identifier> = {
             version: 0,
-            type: 'prebid_id',
+            type: 'paf_browser_id',
             value,
             source: {
                 domain: this.host,
