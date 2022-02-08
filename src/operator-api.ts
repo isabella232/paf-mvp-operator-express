@@ -15,6 +15,7 @@ import {
     Error as PAFError
 } from "paf-mvp-core-js/dist/model/generated-model";
 import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "paf-mvp-core-js/dist/model/model";
+import {getTimeStampInSec} from "paf-mvp-core-js/dist/timestamp";
 import {
     GetIdsPrefsRequestSigner,
     GetIdsPrefsResponseSigner,
@@ -111,6 +112,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
 
         const redirectUrl = getReturnUrl(req, res)
         if (redirectUrl) {
+            // FIXME use GetIdsPrefsResponseBuilder
             const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {
                 identifiers: [existingId],
                 preferences
@@ -175,6 +177,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const existingId = getExistingId(req)
         const preferences = getExistingPrefs(req)
 
+        // FIXME use GetIdsPrefsResponseBuilder
         const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {identifiers: [existingId], preferences})
 
         res.send(JSON.stringify(response))
@@ -241,7 +244,7 @@ export class OperatorApi {
     buildGetIdsPrefsResponse(
         receiver: string,
         {identifiers, preferences}: IdsAndOptionalPreferences,
-        timestampInSec = new Date().getTime() / 1000
+        timestampInSec = getTimeStampInSec()
     ): GetIdsPrefsResponse {
         const data: UnsignedMessage<GetIdsPrefsResponse> = {
             body: {
@@ -262,7 +265,7 @@ export class OperatorApi {
     buildPostIdsPrefsResponse(
         receiver: string,
         {identifiers, preferences}: IdsAndOptionalPreferences,
-        timestampInSec = new Date().getTime() / 1000
+        timestampInSec = getTimeStampInSec()
     ): PostIdsPrefsResponse {
         const data: UnsignedMessage<PostIdsPrefsResponse> = {
             body: {
@@ -280,7 +283,8 @@ export class OperatorApi {
         }
     }
 
-    buildGetNewIdResponse(receiver: string, newId = this.generateNewId(), timestampInSec = new Date().getTime() / 1000): GetNewIdResponse {
+    // FIXME use GetNewIdResponseBuilder
+    buildGetNewIdResponse(receiver: string, newId = this.generateNewId(), timestampInSec = getTimeStampInSec()): GetNewIdResponse {
         const data: UnsignedMessage<GetNewIdResponse> = {
             body: {
                 identifiers: [newId],
@@ -296,7 +300,7 @@ export class OperatorApi {
         }
     }
 
-    signId(value: string, timestampInSec = new Date().getTime() / 1000): Identifier {
+    signId(value: string, timestampInSec = getTimeStampInSec()): Identifier {
         const unsignedId: UnsignedData<Identifier> = {
             version: 0,
             type: 'paf_browser_id',
