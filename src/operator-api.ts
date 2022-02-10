@@ -1,46 +1,31 @@
 import {Express, Request, Response} from "express";
-import {
-    getPafDataFromQueryString,
-    httpRedirect,
-    removeCookie,
-    setCookie
-} from "paf-mvp-core-js/dist/express";
+import {getPafDataFromQueryString, httpRedirect, removeCookie, setCookie} from "paf-mvp-core-js/dist/express";
 import cors, {CorsOptions} from "cors";
 import {v4 as uuidv4} from "uuid";
 import {
     GetIdsPrefsRequest,
-    GetIdsPrefsResponse,
-    GetNewIdResponse,
     Identifier,
-    IdsAndOptionalPreferences,
     PostIdsPrefsRequest,
-    PostIdsPrefsResponse,
     RedirectGetIdsPrefsRequest,
     RedirectPostIdsPrefsRequest,
     Test3Pc
 } from "paf-mvp-core-js/dist/model/generated-model";
-import {isEmptyListOfIds, UnsignedData, UnsignedMessage} from "paf-mvp-core-js/dist/model/model";
+import {UnsignedData} from "paf-mvp-core-js/dist/model/model";
 import {getTimeStampInSec} from "paf-mvp-core-js/dist/timestamp";
-import {
-    GetIdsPrefsRequestSigner,
-    GetIdsPrefsResponseSigner,
-    GetNewIdResponseSigner,
-    PostIdsPrefsRequestSigner,
-    PostIdsPrefsResponseSigner
-} from "paf-mvp-core-js/dist/crypto/message-signature";
+import {GetIdsPrefsRequestSigner, PostIdsPrefsRequestSigner} from "paf-mvp-core-js/dist/crypto/message-signature";
 import {
     Cookies,
     fromIdsCookie,
     fromPrefsCookie,
-    toTest3pcCookie,
-    fromTest3pcCookie
+    fromTest3pcCookie,
+    toTest3pcCookie
 } from "paf-mvp-core-js/dist/cookies";
 import {IdSigner} from "paf-mvp-core-js/dist/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "paf-mvp-core-js/dist/crypto/keys";
 import {jsonEndpoints, redirectEndpoints} from "paf-mvp-core-js/dist/endpoints";
 import {
-    GetIdsPrefsResponseBuilder,
     Get3PCResponseBuilder,
+    GetIdsPrefsResponseBuilder,
     PostIdsPrefsResponseBuilder
 } from "paf-mvp-core-js/dist/model/response-builders";
 
@@ -80,8 +65,13 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             throw 'Read request verification failed'
         }
 
-        const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers])
+        const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers]) ?? []
         const preferences = fromPrefsCookie(req.cookies[Cookies.preferences])
+
+        if (identifiers.filter(i => i.type === 'paf_browser_id').length === 0) {
+            // No existing id, let's generate one, unpersisted
+            identifiers.push(operatorApi.generateNewId())
+        }
 
         return getIdsPrefsResponseBuilder.buildResponse(
             request.sender,
