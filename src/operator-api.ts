@@ -24,7 +24,7 @@ import {
     PostIdsPrefsResponseSigner
 } from "paf-mvp-core-js/dist/crypto/message-signature";
 import {getFromQueryString} from "paf-mvp-core-js/dist/express";
-import {Cookies} from "paf-mvp-core-js/dist/cookies";
+import {Cookies, fromIdsCookie, fromPrefsCookie} from "paf-mvp-core-js/dist/cookies";
 import {IdSigner} from "paf-mvp-core-js/dist/crypto/data-signature";
 import {PrivateKey, privateKeyFromString, PublicKeys} from "paf-mvp-core-js/dist/crypto/keys";
 import {jsonEndpoints, redirectEndpoints, uriParams} from "paf-mvp-core-js/dist/endpoints";
@@ -38,16 +38,6 @@ const getOperatorExpiration = (date: Date = new Date()) => {
     return expirationDate;
 }
 
-const getExistingId = (req: Request): Identifier | undefined => {
-    const cookies = req.cookies;
-    return cookies[Cookies.ID] ? JSON.parse(cookies[Cookies.ID]) : undefined
-}
-
-const getExistingPrefs = (req: Request): Preferences | undefined => {
-    const cookies = req.cookies;
-    return cookies[Cookies.PREFS] ? JSON.parse(cookies[Cookies.PREFS]) : undefined
-}
-
 // TODO should be a proper ExpressJS middleware
 // TODO all received requests should be verified (signature)
 export const addOperatorApi = (app: Express, operatorHost: string, privateKey: string, publicKeyStore: PublicKeys) => {
@@ -55,12 +45,12 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     const tld = domainParser(`https://${operatorHost}`).domain
 
     const writeAsCookies = (input: PostIdsPrefsRequest, res: Response) => {
-        // TODO here we should verify signatures
-        if (input.body.identifiers?.[0] !== undefined) {
-            setCookie(res, Cookies.ID, JSON.stringify(input.body.identifiers[0]), getOperatorExpiration(), {domain: tld})
+        // FIXME here we should verify signatures
+        if (input.body.identifiers !== undefined) {
+            setCookie(res, Cookies.identifiers, JSON.stringify(input.body.identifiers), getOperatorExpiration(), {domain: tld})
         }
         if (input.body.preferences !== undefined) {
-            setCookie(res, Cookies.PREFS, JSON.stringify(input.body.preferences), getOperatorExpiration(), {domain: tld})
+            setCookie(res, Cookies.preferences, JSON.stringify(input.body.preferences), getOperatorExpiration(), {domain: tld})
         }
     };
 
@@ -107,14 +97,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             throw 'Read request verification failed'
         }
 
-        const existingId = getExistingId(req)
-        const preferences = getExistingPrefs(req)
+        const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers])
+        const preferences = fromPrefsCookie(req.cookies[Cookies.preferences])
 
         const redirectUrl = getReturnUrl(req, res)
         if (redirectUrl) {
             // FIXME use GetIdsPrefsResponseBuilder
             const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {
-                identifiers: [existingId],
+                identifiers,
                 preferences
             })
 
@@ -166,7 +156,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const now = new Date();
         const expirationDate = new Date(now)
         expirationDate.setTime(now.getTime() + 1000 * 60) // Lifespan: 1 minute
-        setCookie(res, Cookies.TEST_3PC, now.getTime(), expirationDate, {domain: tld})
+        setCookie(res, Cookies.test_3pc, now.getTime(), expirationDate, {domain: tld})
 
         const message = getReadRequest(req);
 
@@ -174,11 +164,11 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
             throw 'Read request verification failed'
         }
 
-        const existingId = getExistingId(req)
-        const preferences = getExistingPrefs(req)
+        const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers])
+        const preferences = fromPrefsCookie(req.cookies[Cookies.preferences])
 
         // FIXME use GetIdsPrefsResponseBuilder
-        const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {identifiers: [existingId], preferences})
+        const response = operatorApi.buildGetIdsPrefsResponse(message.sender, {identifiers, preferences})
 
         res.send(JSON.stringify(response))
     });
@@ -187,14 +177,14 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         // Note: no signature verification here
 
         const cookies = req.cookies;
-        const testCookieValue = cookies[Cookies.TEST_3PC]
+        const testCookieValue = cookies[Cookies.test_3pc]
 
         // Clean up
-        removeCookie(req, res, Cookies.TEST_3PC, {domain: tld})
+        removeCookie(req, res, Cookies.test_3pc, {domain: tld})
 
         const isOk = testCookieValue?.length > 0;
 
-        // FIXME use operatorAPI.build3PC
+        // FIXME use Get3PCResponseBuilder.build3PC
         // FIXME return 404 if not supported
 
         res.send(JSON.stringify(isOk))
@@ -319,11 +309,5 @@ export class OperatorApi {
                 signature: this.idSigner.sign(this.ecdsaKey, unsignedId)
             }
         };
-    }
-
-    build3PC(supported: boolean): Get3PcResponse | PAFError {
-        return supported
-            ? {"3pc": true}
-            : {message: "3PC not supported"}
     }
 }
