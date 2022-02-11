@@ -208,6 +208,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
     });
 }
 
+// FIXME should probably be moved to core library
 export class OperatorApi {
     private readonly idSigner = new IdSigner()
     private readonly ecdsaKey: PrivateKey
