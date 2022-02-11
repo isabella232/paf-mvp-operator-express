@@ -217,7 +217,7 @@ export class OperatorApi {
 
     signId(value: string, timestampInSec = getTimeStampInSec()): Identifier {
         const unsignedId: UnsignedData<Identifier> = {
-            version: 0,
+            version: "0.1",
             type: 'paf_browser_id',
             value,
             source: {
