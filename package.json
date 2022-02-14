@@ -1,6 +1,6 @@
 {
   "name": "paf-mvp-operator-express",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Prebid Addressability Framework (PAF) Operator: ExpressJS implementation",
   "main": "index.js",
   "type": "commonjs",
@@ -25,7 +25,7 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.1",
+    "paf-mvp-core-js": "criteo/paf-mvp-core-js#semver:0.1.4",
     "tld-extract": "^2.0.1",
     "uuid": "^8.3.2"
   },
