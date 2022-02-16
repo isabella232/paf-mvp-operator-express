@@ -68,7 +68,7 @@ export const addOperatorApi = (app: Express, operatorHost: string, privateKey: s
         const identifiers = fromIdsCookie(req.cookies[Cookies.identifiers]) ?? []
         const preferences = fromPrefsCookie(req.cookies[Cookies.preferences])
 
-        if (identifiers.filter(i => i.type === 'paf_browser_id').length === 0) {
+        if (!identifiers.some((i: Identifier) => i.type === 'paf_browser_id')) {
             // No existing id, let's generate one, unpersisted
             identifiers.push(operatorApi.generateNewId())
         }
